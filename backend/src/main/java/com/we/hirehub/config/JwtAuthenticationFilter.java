@@ -34,8 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         log.debug("🔍 JWT 필터 실행: {}", path);
 
+        // ✅ 인증이 필요 없는 공개 경로 목록
+        if (isExcludedPath(path)) {
+            filterChain.doFilter(request, response);
+            return; // 🚫 JWT 검사 스킵
+        }
+
         try {
-            // ✅ Authorization 헤더 직접 파싱
+            // ✅ Authorization 헤더에서 토큰 추출
             String header = request.getHeader("Authorization");
             if (header == null || !header.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
@@ -69,5 +75,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * ✅ 인증 예외 경로 설정
+     */
+    private boolean isExcludedPath(String path) {
+        return path.startsWith("/actuator")
+                || path.startsWith("/error")
+                || path.startsWith("/swagger")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/favicon")
+                || path.startsWith("/css")
+                || path.startsWith("/js")
+                || path.startsWith("/images")
+                || path.startsWith("/login")
+                || path.startsWith("/oauth2")
+                || path.startsWith("/api/public")
+                || path.startsWith("/api/auth")
+                || path.startsWith("/api/onboarding")
+                || path.startsWith("/ws"); // WebSocket 경로 예외
     }
 }
