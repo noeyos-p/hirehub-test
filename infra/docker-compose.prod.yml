@@ -3,7 +3,7 @@ version: '3.9'
 services:
   backend:
     image: ${BACKEND_IMAGE}
-    container_name: backend
+    container_name: h-backend
     env_file:
       - .env.prod
     environment:
@@ -30,14 +30,6 @@ services:
     depends_on:
       - db
 
-    # ✅ 앱 부팅 안정성을 위한 헬스체크
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
   db:
     image: mysql:8.0
     container_name: hirehub-db
@@ -52,16 +44,12 @@ services:
 
   frontend:
     image: ${FRONTEND_IMAGE}
-    container_name: frontend
+    container_name: h-frontend
     depends_on:
       - backend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - "3000:80"  # 포트 변경: 호스트의 3000번 포트로 매핑
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
       APP_FRONT_REDIRECT_URL: ${APP_FRONT_REDIRECT_URL}
