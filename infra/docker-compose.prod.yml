@@ -8,20 +8,35 @@ services:
       - .env.prod
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+
+      # ✅ DB 연결
       RDS_ENDPOINT: ${RDS_ENDPOINT}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+
+      # ✅ AWS 설정 (Spring 매핑 규칙에 맞게 변경)
       AWS_REGION: ${AWS_REGION}
+      AWS_CREDENTIALS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_CREDENTIALS_SECRET_KEY: ${AWS_SECRET_KEY}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+
+      # ✅ JWT 등 앱 관련 설정
       JWT_SECRET: ${JWT_SECRET}
       JAVA_OPTS: "--add-opens java.base/java.lang=ALL-UNNAMED"
+
     restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
       - db
+
+    # ✅ 앱 부팅 안정성을 위한 헬스체크
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   db:
     image: mysql:8.0
@@ -43,9 +58,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"  # ✅ HTTPS 포트
+      - "443:443"
     volumes:
-      # ✅ SSL 인증서 마운트
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /etc/ssl/certs:/etc/ssl/certs:ro
     environment:
